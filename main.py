@@ -14,6 +14,54 @@ global dt
 2.敌机， 移动轨迹从上往下随机(？)✓， 数量速度随时间节点变化 ✓
 """
 
+import ctypes
+import sys
+
+
+def is_chinese_input_method():
+    # 检查平台
+    if sys.platform.startswith('win'):
+        try:
+            # 加载user32.dll
+            user32 = ctypes.windll.LoadLibrary("user32.dll")
+
+            # 调用GetKeyboardLayout函数获取当前键盘布局
+            layout = user32.GetKeyboardLayout(0)
+
+            # 提取低16位以获得主要语言标识符
+            lang_id = layout & 0xFFFF
+
+            # 检查语言标识符是否为中文
+            return lang_id == 0x0804  # 0x0804表示中文(简体)
+        except Exception as e:
+            print("Error:", e)
+            return False
+    else:
+        # 非Windows系统，暂时无法检测输入法状态
+        print("This feature is only supported on Windows.")
+        return False
+
+
+# 测试函数
+def switch_to_english_input():
+    # 检查平台
+    if sys.platform.startswith('win'):
+        try:
+            # 加载user32.dll
+            user32 = ctypes.windll.LoadLibrary("user32.dll")
+
+            # 切换输入法至英文（美国）布局（0x0409）
+            user32.ActivateKeyboardLayout(0x0409, 0)
+            print("已切换至英文输入法")
+        except Exception as e:
+            print("Error:", e)
+    else:
+        # 非Windows系统，暂时无法切换输入法
+        print("This feature is only supported on Windows.")
+
+
+
+
 
 def my_rand_method(x):
     # 自定义随机方法，x是游戏时间戳(ms)
@@ -64,6 +112,15 @@ def main():
     global dt
     dt = 0
 
+    # for i in range(5):
+    #     my_plane.move(10, 10)
+
+    # 测试函数
+    if is_chinese_input_method():
+        print("当前输入法为中文输入法")
+        switch_to_english_input()
+    else:
+        print("当前输入法不是中文输入法或无法确定")
     running = True
     while running:
         for event in pg.event.get():
@@ -85,6 +142,9 @@ def main():
         keys = pg.key.get_pressed()
         my_plane.move(-my_plane.speed * dt * (keys[pg.K_a] - keys[pg.K_d]),
                       -my_plane.speed * dt * (keys[pg.K_w] - keys[pg.K_s]))
+
+        # print((keys[pg.K_a] - keys[pg.K_d]), (keys[pg.K_w] - keys[pg.K_s]))
+        # print(keys[pg.K_a], keys[pg.K_w])
 
         if keys[pg.K_SPACE]:
             my_plane.shoot(all, bullets)
@@ -125,7 +185,7 @@ def main():
         pg.display.flip()
         dt = clock.tick(FRAMERATE) / 1000
         screen.fill("white")
-        screen.blit(f.render("HP:" + str(max(0, my_plane.hp)) + "  Score:" + str(score), False, (0, 0, 0)), wor_rect)
+        screen.blit(f.render("HP:" + str(max(0, my_plane.hp)) + "  Score:" + str(score) , False, (0, 0, 0)), wor_rect)
 
 
 if __name__ == "__main__":
